@@ -9,7 +9,7 @@ export default createRouter({
       component: HomeView,
     },
     {
-      path: "/convert/:currency",
+      path: "/convert",
       component: ConvertView,
     },
   ],

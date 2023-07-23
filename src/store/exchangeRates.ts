@@ -1,3 +1,4 @@
+import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 import {
   currenciesType,
@@ -8,155 +9,147 @@ import {
 
 const API = import.meta.env.VITE_OPEN_EXCHANGE_RATES_API_URL;
 
-type localStateType = {
-  baseCurrency: string;
-  ratesDate: Date;
-  items: iRateItem[];
-  itemsCached: {
-    [key: string]: iRateItem[];
+export const useExchangeRates = defineStore("ExchangeRates", () => {
+  // State
+  const baseCurrency = ref<string>("RUB");
+  const itemsCached = ref<{ [key: string]: iRateItem[] }>({});
+  const dailyJson = ref<iDailyJson | null>(null);
+  const items = ref<iRateItem[]>([]);
+  const loading = ref<boolean>(false);
+  const error = ref<any>(false);
+
+  // getters
+  const getExchangeRateData = computed((): iExchangeRate => {
+    return {
+      date: dailyJson.value && new Date(dailyJson.value.Date),
+      base: baseCurrency.value,
+      items: items.value,
+    };
+  });
+  const isLoading = computed((): boolean => loading.value);
+  const isError = computed((): any => error.value);
+  const getCurrencies = computed((): currenciesType | null => {
+    return dailyJson.value && Object.keys(dailyJson.value.Valute);
+  });
+
+  // actions
+  const convertWithCurrency = (
+    val: number,
+    currencyFrom: string,
+    currencyTo: string,
+    sliceCount = 2,
+  ) => {
+    return (
+      window
+        // @ts-ignore
+        .fx(val)
+        .from(currencyFrom)
+        .to(currencyTo)
+        .toFixed(sliceCount)
+    );
   };
-  dailyJson: iDailyJson | null;
-  loading: boolean;
-  error: any;
-};
 
-export const useExchangeRates = defineStore("ExchangeRates", {
-  state: (): localStateType => ({
-    baseCurrency: "RUB",
-    ratesDate: new Date(),
-    itemsCached: {},
-    dailyJson: null,
-    items: [],
-    loading: false,
-    error: false,
-  }),
-  getters: {
-    getExchangeRateData(): iExchangeRate {
-      return {
-        date: this.dailyJson && new Date(this.dailyJson.Date),
-        base: this.baseCurrency,
-        items: this.items,
-      };
-    },
+  const changeBaseCurrency = (newCurrency: string) => {
+    baseCurrency.value = newCurrency;
 
-    isLoading(): boolean {
-      return this.loading;
-    },
+    if (itemsCached.value[baseCurrency.value]) {
+      items.value = itemsCached.value[baseCurrency.value];
+      return;
+    }
+    loading.value = true;
 
-    isError(): any {
-      return this.error;
-    },
+    setTimeout(() => {
+      changeBaseValueDaily();
+    }, 600);
+  };
 
-    getCurrencies(): currenciesType | null {
-      return this.dailyJson && Object.keys(this.dailyJson.Valute);
-    },
-  },
-  actions: {
-    convertWithCurrency(
-      val: number,
-      currencyFrom: string,
-      currencyTo: string,
-      sliceCount = 2,
-    ) {
-      return (
-        window
-          // @ts-ignore
-          .fx(val)
-          .from(currencyFrom)
-          .to(currencyTo)
-          .toFixed(sliceCount)
-      );
-    },
+  const fetchExchangeRates = async () => {
+    try {
+      const res = await fetch(`${API}/daily_json.js`);
+      const data = await res.json();
 
-    changeBaseCurrency(newCurrency: string) {
-      this.baseCurrency = newCurrency;
+      if (data.error) {
+        throw data.description || data.message;
+      }
+      dailyJson.value = data;
+    } catch (err) {
+      throw err;
+    }
+  };
 
-      if (this.itemsCached[this.baseCurrency]) {
-        this.items = this.itemsCached[this.baseCurrency];
+  const trend = (current: number, previous: number) => {
+    if (current > previous) return "up";
+    if (current < previous) return "down";
+    return "";
+  };
+
+  const changeBaseValueDaily = () => {
+    if (!dailyJson.value) return;
+    error.value = false;
+    items.value = [];
+    try {
+      for (const currency in dailyJson.value.Valute) {
+        const item = dailyJson.value.Valute[currency];
+        const newVal = convertWithCurrency(
+          item.Nominal,
+          currency,
+          baseCurrency.value,
+        );
+
+        items.value.push({
+          ...dailyJson.value.Valute[currency],
+          Value: +newVal,
+          Previous: +newVal,
+          state: "",
+        });
+      }
+
+      itemsCached.value[baseCurrency.value] = items.value;
+    } catch (e: any) {
+      error.value = e;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const getDataRates = async () => {
+    loading.value = true;
+    error.value = false;
+    items.value = [];
+    try {
+      if (itemsCached.value[baseCurrency.value]) {
+        items.value = itemsCached.value[baseCurrency.value];
         return;
       }
-      this.loading = true;
 
-      setTimeout(() => {
-        this.changeBaseValueDaily();
-      }, 600);
-    },
+      await fetchExchangeRates();
 
-    async fetchExchangeRates() {
-      try {
-        const res = await fetch(`${API}/daily_json.js`);
-        const data = await res.json();
+      if (!dailyJson.value) return;
 
-        if (data.error) {
-          throw data.description || data.message;
-        }
-        this.dailyJson = data;
-      } catch (err) {
-        throw err;
+      for (const currency in dailyJson.value.Valute) {
+        const item = dailyJson.value.Valute[currency];
+        items.value.push({
+          ...dailyJson.value.Valute[currency],
+          state: trend(+item.Value, +item.Previous),
+        });
       }
-    },
+    } catch (e: any) {
+      error.value = e;
+    } finally {
+      loading.value = false;
+    }
+  };
 
-    trend(current: number, previous: number) {
-      if (current > previous) return "up";
-      if (current < previous) return "down";
-      return "";
-    },
+  return {
+    // getters
+    getExchangeRateData,
+    isLoading,
+    isError,
+    getCurrencies,
 
-    changeBaseValueDaily() {
-      if (!this.dailyJson) return;
-      this.error = false;
-      this.items = [];
-      try {
-        for (const currency in this.dailyJson.Valute) {
-          const item = this.dailyJson.Valute[currency];
-          const newVal = this.convertWithCurrency(
-            item.Nominal,
-            currency,
-            this.baseCurrency,
-          );
-
-          this.items.push({
-            ...this.dailyJson.Valute[currency],
-            Value: +newVal,
-            Previous: +newVal,
-            state: "",
-          });
-        }
-
-        this.itemsCached[this.baseCurrency] = this.items;
-      } catch (e: any) {
-        this.error = e;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async getDataRates() {
-      this.loading = true;
-      this.error = false;
-      this.items = [];
-      try {
-        if (this.itemsCached[this.baseCurrency]) {
-          this.items = this.itemsCached[this.baseCurrency];
-          return;
-        }
-
-        await this.fetchExchangeRates();
-
-        if (!this.dailyJson) return;
-
-        for (const currency in this.dailyJson.Valute) {
-          const item = this.dailyJson.Valute[currency];
-          this.items.push({
-            ...this.dailyJson.Valute[currency],
-            state: this.trend(+item.Value, +item.Previous),
-          });
-        }
-      } catch (e: any) {
-        this.error = e;
-      } finally {
-        this.loading = false;
-      }
-    },
-  },
+    // actions
+    convertWithCurrency,
+    changeBaseCurrency,
+    getDataRates,
+  };
 });

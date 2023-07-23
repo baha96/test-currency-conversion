@@ -13,18 +13,18 @@ defineProps<{
   <router-link
     v-if="item"
     class="p-6 shadow-xl flex flex-col rounded"
-    :to="`/convert/${item.CharCode}?from=${baseCurrency}&value=${item.Value}`"
+    :to="`/convert?from=${item.CharCode}&total=${item.Value}&value=${item.Nominal}`"
   >
     <DefaultTitle tag="h5" class="font-medium text-gray-600 mb-2">
       {{ item.Name }}
     </DefaultTitle>
 
     <DefaultParagraph class="text-gray-400 mb-auto">
-      {{ item.Nominal }} {{ baseCurrency }}
+      {{ item.Nominal }} {{ item.CharCode }}
     </DefaultParagraph>
 
     <DefaultParagraph class="mt-3 font-semibold">
-      {{ item.Value }} {{ item.CharCode }}
+      {{ item.Value }} {{ baseCurrency }}
       <span
         class="text-gray-400 text-xs"
         :class="{

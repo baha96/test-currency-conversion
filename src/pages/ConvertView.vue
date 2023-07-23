@@ -13,9 +13,9 @@ const route = useRoute();
 const { getExchangeRateData } = storeToRefs(store);
 const { getDataRates, convertWithCurrency } = store;
 const fromCurrency = ref(route.query.from || getExchangeRateData.value.base);
-const toCurrency = ref(route.params.currency || getExchangeRateData.value.base);
-const fromValue = ref("1");
-const toValue = ref(route.query.value || "0");
+const toCurrency = ref(route.query.to || getExchangeRateData.value.base);
+const fromValue = ref(route.query.value || "1");
+const toValue = ref(route.query.total || "0");
 
 if (!getExchangeRateData.value.items.length) {
   getDataRates();
@@ -29,7 +29,7 @@ function changeValue(val, currencyFrom, currencyTo) {
   fromValue.value = val;
   clearTimeout(timerDebounce);
   timerDebounce = setTimeout(() => {
-    toValue.value = convertWithCurrency(+val, currencyFrom, currencyTo, 3);
+    toValue.value = convertWithCurrency(+val, currencyFrom, currencyTo);
   }, 400);
 }
 </script>
