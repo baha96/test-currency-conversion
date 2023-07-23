@@ -10,7 +10,11 @@ defineProps<{
 </script>
 
 <template>
-  <div v-if="item" class="p-6 shadow-xl flex flex-col rounded">
+  <router-link
+    v-if="item"
+    class="p-6 shadow-xl flex flex-col rounded"
+    :to="`/convert/${item.CharCode}`"
+  >
     <DefaultTitle tag="h5" class="font-medium text-gray-600 mb-2">
       {{ item.Name }}
     </DefaultTitle>
@@ -30,7 +34,7 @@ defineProps<{
         {{ item.state === "up" ? "▲" : item.state === "down" ? "▼" : "" }}
       </span>
     </DefaultParagraph>
-  </div>
+  </router-link>
 </template>
 
 <style scoped></style>

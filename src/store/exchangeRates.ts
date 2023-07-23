@@ -83,7 +83,9 @@ export const useExchangeRates = defineStore("ExchangeRates", {
       try {
         for (const currency in this.dailyJson.Valute) {
           const item = this.dailyJson.Valute[currency];
+
           const newVal = window
+            // @ts-ignore
             .fx(item.Nominal)
             .from(currency)
             .to(this.baseCurrency)
@@ -107,6 +109,10 @@ export const useExchangeRates = defineStore("ExchangeRates", {
       this.error = false;
       this.items = [];
       try {
+        if (this.itemsCached[this.baseCurrency]) {
+          this.items = this.itemsCached[this.baseCurrency];
+          return;
+        }
         await this.fetchExchangeRates();
         if (!this.dailyJson) return;
         this.items = [];
