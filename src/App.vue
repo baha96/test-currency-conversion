@@ -1,29 +1,65 @@
 <script setup lang="ts">
+import { ref, computed } from "vue";
+import { storeToRefs } from "pinia";
+import SearchInput from "./components/shared/SearchInput.vue";
+import RateCard from "./components/rates/RateCard.vue";
+import DefaultTitle from "./components/shared/typography/DefaultTitle.vue";
+import * as fx from "money";
+import { useExchangeRates } from "./store/exchangeRates.ts";
+import { iRateItem } from "./types/exchangeRates.ts";
+import SwitcherCurrency from "./components/rates/SwitcherCurrency.vue";
+const store = useExchangeRates();
+const { getExchangeRateData, isLoading, isError } = storeToRefs(store);
+const { getDataRates } = store;
+const searchText = ref("");
+getDataRates();
+fx.base = "USD";
+fx.rates = {};
+console.log("fx", getExchangeRateData, fx.rates);
+function formatDate(date) {
+  return new Date(date).toLocaleDateString("ru-RU", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function searchCurrency(text) {
+  const items = getExchangeRateData.value.items || [];
+  return items.filter(
+    (c) =>
+      c.CharCode.toLowerCase().includes(text) ||
+      c.Name.toLowerCase().includes(text),
+  );
+}
+const content = computed((): iRateItem[] => {
+  if (searchText.value) {
+    return searchCurrency(searchText.value);
+  } else {
+    return getExchangeRateData.value.items || [];
+  }
+});
 </script>
 
 <template>
-  <div>
-    <h1>Курсы валют ЦБ РФ на 22.07.2023</h1>
-    <p>1 EUR - 92.0669 RUB ▼</p>
-    <p>1 RUB - 0.0109 EUR ▼</p>
-    <p>Последнее обновление базы данных: 21.07.2023, 23:00:00</p>
-    <div>
-      <div>Цифр. код</div>
-      <div>Букв. код</div>
-      <div>Единиц</div>
-      <div>Валюта</div>
-      <div>Курс</div>
-    </div>
-    <div>
-      <div>036</div>
-      <div>AUD</div>
-      <div>1</div>
-      <div>Австралийский доллар</div>
-      <div>61,2356	(−0,8)</div>
-    </div>
+  <div class="container pt-20">
+    <template v-if="getExchangeRateData">
+      <DefaultTitle tag="h1" class="text-3xl font-bold mb-3">
+        Курсы валют ЦБ РФ на {{ formatDate(getExchangeRateData.date) }}
+      </DefaultTitle>
+      <SwitcherCurrency class="mb-2" />
+      <SearchInput @search:get="searchText = $event" />
+      <div v-if="isLoading">loading....</div>
+      <div v-else-if="isError">{{ isError || "error...." }}</div>
+      <div v-else class="grid grid-cols-5 gap-4">
+        <RateCard
+          v-for="item in content"
+          :key="item.CharCode"
+          :baseCurrency="getExchangeRateData.base"
+          :item="item"
+        />
+      </div>
+    </template>
   </div>
 </template>
-
-<style scoped>
-
-</style>
