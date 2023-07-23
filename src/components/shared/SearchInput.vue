@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
+
 const emit = defineEmits(["search:get"]);
 const searchText = ref("");
 let debounceTimer;
+
 function debounceInput() {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {

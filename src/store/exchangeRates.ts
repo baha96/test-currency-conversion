@@ -1,4 +1,3 @@
-const API = import.meta.env.VITE_OPEN_EXCHANGE_RATES_API_URL;
 import { defineStore } from "pinia";
 import {
   currenciesType,
@@ -6,6 +5,8 @@ import {
   iExchangeRate,
   iRateItem,
 } from "../types/exchangeRates.ts";
+
+const API = import.meta.env.VITE_OPEN_EXCHANGE_RATES_API_URL;
 
 type localStateType = {
   baseCurrency: string;
@@ -37,12 +38,15 @@ export const useExchangeRates = defineStore("ExchangeRates", {
         items: this.items,
       };
     },
+
     isLoading(): boolean {
       return this.loading;
     },
+
     isError(): any {
       return this.error;
     },
+
     getCurrencies(): currenciesType | null {
       return this.dailyJson && Object.keys(this.dailyJson.Valute);
     },
@@ -63,21 +67,26 @@ export const useExchangeRates = defineStore("ExchangeRates", {
           .toFixed(sliceCount)
       );
     },
+
     changeBaseCurrency(newCurrency: string) {
       this.baseCurrency = newCurrency;
+
       if (this.itemsCached[this.baseCurrency]) {
         this.items = this.itemsCached[this.baseCurrency];
         return;
       }
       this.loading = true;
+
       setTimeout(() => {
         this.changeBaseValueDaily();
       }, 600);
     },
+
     async fetchExchangeRates() {
       try {
         const res = await fetch(`${API}/daily_json.js`);
         const data = await res.json();
+
         if (data.error) {
           throw data.description || data.message;
         }
@@ -86,11 +95,13 @@ export const useExchangeRates = defineStore("ExchangeRates", {
         throw err;
       }
     },
+
     trend(current: number, previous: number) {
       if (current > previous) return "up";
       if (current < previous) return "down";
       return "";
     },
+
     changeBaseValueDaily() {
       if (!this.dailyJson) return;
       this.error = false;
@@ -98,12 +109,12 @@ export const useExchangeRates = defineStore("ExchangeRates", {
       try {
         for (const currency in this.dailyJson.Valute) {
           const item = this.dailyJson.Valute[currency];
-
           const newVal = this.convertWithCurrency(
             item.Nominal,
             currency,
             this.baseCurrency,
           );
+
           this.items.push({
             ...this.dailyJson.Valute[currency],
             Value: +newVal,
@@ -111,6 +122,7 @@ export const useExchangeRates = defineStore("ExchangeRates", {
             state: "",
           });
         }
+
         this.itemsCached[this.baseCurrency] = this.items;
       } catch (e: any) {
         this.error = e;
@@ -118,6 +130,7 @@ export const useExchangeRates = defineStore("ExchangeRates", {
         this.loading = false;
       }
     },
+
     async getDataRates() {
       this.loading = true;
       this.error = false;
@@ -127,9 +140,11 @@ export const useExchangeRates = defineStore("ExchangeRates", {
           this.items = this.itemsCached[this.baseCurrency];
           return;
         }
+
         await this.fetchExchangeRates();
+
         if (!this.dailyJson) return;
-        this.items = [];
+
         for (const currency in this.dailyJson.Valute) {
           const item = this.dailyJson.Valute[currency];
           this.items.push({

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { iRateItem } from "../../types/exchangeRates.ts";
 import DefaultTitle from "../shared/typography/DefaultTitle.vue";
 import DefaultParagraph from "../shared/typography/DefaultParagraph.vue";
+import { iRateItem } from "../../types/exchangeRates.ts";
 
 defineProps<{
   item: iRateItem;
@@ -18,9 +18,11 @@ defineProps<{
     <DefaultTitle tag="h5" class="font-medium text-gray-600 mb-2">
       {{ item.Name }}
     </DefaultTitle>
+
     <DefaultParagraph class="text-gray-400 mb-auto">
       {{ item.Nominal }} {{ baseCurrency }}
     </DefaultParagraph>
+
     <DefaultParagraph class="mt-3 font-semibold">
       {{ item.Value }} {{ item.CharCode }}
       <span

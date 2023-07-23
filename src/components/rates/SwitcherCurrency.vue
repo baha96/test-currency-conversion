@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import DefaultTitle from "../shared/typography/DefaultTitle.vue";
-import { useExchangeRates } from "../../store/exchangeRates.ts";
-const store = useExchangeRates();
 import { storeToRefs } from "pinia";
+import { useExchangeRates } from "../../store/exchangeRates.ts";
+import DefaultTitle from "../shared/typography/DefaultTitle.vue";
+
+const store = useExchangeRates();
 const { getCurrencies } = storeToRefs(store);
 const { changeBaseCurrency } = store;
+
 const props = defineProps<{
   isGlobalChange?: boolean;
   baseCurrency: string;
@@ -23,15 +25,17 @@ function changeBase(val) {
 
 <template>
   <div class="switcher-currency flex items-center">
-    <DefaultTitle v-if="isGlobalChange" tag="h6" class="font-bold mr-2"
-      >Основная валюта:</DefaultTitle
-    >
+    <DefaultTitle v-if="isGlobalChange" tag="h6" class="font-bold mr-2">
+      Основная валюта:
+    </DefaultTitle>
+
     <select
       @input="changeBase($event.target.value)"
       class="outline-0"
       :class="{ 'text-1xl font-bold': !isGlobalChange }"
     >
       <option>{{ baseCurrency }}</option>
+
       <option
         v-for="item in getCurrencies"
         :key="item"

@@ -8,22 +8,18 @@ export interface iRateItem {
   Previous: number;
   state: "up" | "down" | "";
 }
+
 export interface iDailyJson {
   Date: string;
   Valute: {
     [key: string]: iRateItem;
   };
 }
+
 export interface iExchangeRate {
   date: Date | null;
   base: string;
   items: iRateItem[];
 }
-export type currenciesType = string[];
 
-export type ratesType = {
-  [key: string]: rateType;
-};
-export type rateType = {
-  [key: string]: number;
-};
+export type currenciesType = string[];

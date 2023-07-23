@@ -1,24 +1,28 @@
 <script setup lang="ts">
-import { useRoute } from "vue-router";
-import DefaultTitle from "../components/shared/typography/DefaultTitle.vue";
-import { useExchangeRates } from "../store/exchangeRates.ts";
-import { storeToRefs } from "pinia";
 import ConvertCard from "../components/rates/ConvertCard.vue";
+import DefaultTitle from "../components/shared/typography/DefaultTitle.vue";
+
 import { ref } from "vue";
+import { useRoute } from "vue-router";
+import { storeToRefs } from "pinia";
+import { useExchangeRates } from "../store/exchangeRates.ts";
+import { formatDate } from "../utils.ts";
 
 const store = useExchangeRates();
 const route = useRoute();
 const { getExchangeRateData } = storeToRefs(store);
 const { getDataRates, convertWithCurrency } = store;
-if (!getExchangeRateData.value.items.length) {
-  getDataRates();
-}
 const fromCurrency = ref(route.query.from || getExchangeRateData.value.base);
 const toCurrency = ref(route.params.currency || getExchangeRateData.value.base);
 const fromValue = ref("1");
 const toValue = ref(route.query.value || "0");
 
+if (!getExchangeRateData.value.items.length) {
+  getDataRates();
+}
+
 let timerDebounce;
+
 function changeValue(val, currencyFrom, currencyTo) {
   fromCurrency.value = currencyFrom;
   toCurrency.value = currencyTo;
@@ -28,15 +32,6 @@ function changeValue(val, currencyFrom, currencyTo) {
     toValue.value = convertWithCurrency(+val, currencyFrom, currencyTo, 3);
   }, 400);
 }
-
-function formatDate(date) {
-  return new Date(date).toLocaleDateString("ru-RU", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
 </script>
 
 <template>
@@ -44,6 +39,7 @@ function formatDate(date) {
     <DefaultTitle tag="h1" class="text-3xl mb-6">
       Конвертер, {{ formatDate(getExchangeRateData.date) }}
     </DefaultTitle>
+
     <div class="flex items-center justify-between">
       <ConvertCard
         title="Из"
@@ -53,6 +49,7 @@ function formatDate(date) {
         :value="fromValue"
         :isDisabled="false"
       />
+
       <div @click="changeValue(toValue, toCurrency, fromCurrency)">
         <svg
           class="cursor-pointer"
@@ -65,6 +62,7 @@ function formatDate(date) {
           <path fill="#444444" d="M0 12v-2h13v-2l3 3-3 3v-2z" />
         </svg>
       </div>
+
       <ConvertCard
         title="В"
         :currency="toCurrency"
