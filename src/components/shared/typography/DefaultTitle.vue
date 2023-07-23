@@ -6,5 +6,5 @@ defineProps<IPropsData>();
 </script>
 
 <template>
-  <component :is="tag" class="default-title"><slot></slot></component>
+  <component :is="tag" class="default-title font-bold"><slot></slot></component>
 </template>

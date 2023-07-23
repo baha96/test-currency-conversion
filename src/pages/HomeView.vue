@@ -42,10 +42,14 @@ const content = computed((): iRateItem[] => {
 <template>
   <div>
     <template v-if="getExchangeRateData">
-      <DefaultTitle tag="h1" class="text-3xl font-bold mb-3">
+      <DefaultTitle tag="h1" class="text-3xl mb-3">
         Курсы валют ЦБ РФ на {{ formatDate(getExchangeRateData.date) }}
       </DefaultTitle>
-      <SwitcherCurrency class="mb-2" />
+      <SwitcherCurrency
+        class="mb-2"
+        :baseCurrency="getExchangeRateData.base"
+        :isGlobalChange="true"
+      />
       <SearchInput @search:get="searchText = $event" />
       <div v-if="isLoading">loading....</div>
       <div v-else-if="isError">{{ isError || "error...." }}</div>

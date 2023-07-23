@@ -48,6 +48,21 @@ export const useExchangeRates = defineStore("ExchangeRates", {
     },
   },
   actions: {
+    convertWithCurrency(
+      val: number,
+      currencyFrom: string,
+      currencyTo: string,
+      sliceCount = 2,
+    ) {
+      return (
+        window
+          // @ts-ignore
+          .fx(val)
+          .from(currencyFrom)
+          .to(currencyTo)
+          .toFixed(sliceCount)
+      );
+    },
     changeBaseCurrency(newCurrency: string) {
       this.baseCurrency = newCurrency;
       if (this.itemsCached[this.baseCurrency]) {
@@ -84,12 +99,11 @@ export const useExchangeRates = defineStore("ExchangeRates", {
         for (const currency in this.dailyJson.Valute) {
           const item = this.dailyJson.Valute[currency];
 
-          const newVal = window
-            // @ts-ignore
-            .fx(item.Nominal)
-            .from(currency)
-            .to(this.baseCurrency)
-            .toFixed(2);
+          const newVal = this.convertWithCurrency(
+            item.Nominal,
+            currency,
+            this.baseCurrency,
+          );
           this.items.push({
             ...this.dailyJson.Valute[currency],
             Value: +newVal,

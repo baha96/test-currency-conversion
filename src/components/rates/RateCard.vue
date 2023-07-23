@@ -13,7 +13,7 @@ defineProps<{
   <router-link
     v-if="item"
     class="p-6 shadow-xl flex flex-col rounded"
-    :to="`/convert/${item.CharCode}`"
+    :to="`/convert/${item.CharCode}?from=${baseCurrency}&value=${item.Value}`"
   >
     <DefaultTitle tag="h5" class="font-medium text-gray-600 mb-2">
       {{ item.Name }}
