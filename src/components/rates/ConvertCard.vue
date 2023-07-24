@@ -20,7 +20,7 @@ const emit = defineEmits(["change:input", "change:currency"]);
       class="mx-8 border outline-0 px-6 py-4 rounded"
       type="text"
       :value="value"
-      @input="emit('change:input', $event.target.value)"
+      @input="emit('change:input', ($event.target as HTMLInputElement).value)"
       :disabled="isDisabled"
     />
 

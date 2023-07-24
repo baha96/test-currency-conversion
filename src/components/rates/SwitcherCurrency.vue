@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const emit = defineEmits(["get:currency"]);
 
-function changeBase(val) {
+function changeBase(val: string) {
   if (props.isGlobalChange) {
     changeBaseCurrency(val);
   } else {
@@ -30,7 +30,7 @@ function changeBase(val) {
     </DefaultTitle>
 
     <select
-      @input="changeBase($event.target.value)"
+      @input="changeBase(($event.target as HTMLSelectElement).value)"
       class="outline-0"
       :class="{ 'text-1xl font-bold': !isGlobalChange }"
     >

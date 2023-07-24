@@ -12,18 +12,22 @@ const store = useExchangeRates();
 const route = useRoute();
 const { getExchangeRateData } = storeToRefs(store);
 const { getDataRates, convertWithCurrency } = store;
-const fromCurrency = ref(route.query.from || getExchangeRateData.value.base);
-const toCurrency = ref(route.query.to || getExchangeRateData.value.base);
-const fromValue = ref(route.query.value || "1");
-const toValue = ref(route.query.total || "0");
+const fromCurrency = ref(
+  (route.query.from as string) || getExchangeRateData.value.base,
+);
+const toCurrency = ref(
+  (route.query.to as string) || getExchangeRateData.value.base,
+);
+const fromValue = ref((route.query.value as string) || "1");
+const toValue = ref((route.query.total as string) || "0");
 
 if (!getExchangeRateData.value.items.length) {
   getDataRates();
 }
 
-let timerDebounce;
+let timerDebounce: number | undefined;
 
-function changeValue(val, currencyFrom, currencyTo) {
+function changeValue(val: string, currencyFrom: string, currencyTo: string) {
   fromCurrency.value = currencyFrom;
   toCurrency.value = currencyTo;
   fromValue.value = val;

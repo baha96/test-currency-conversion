@@ -17,7 +17,7 @@ const { getExchangeRateData, isLoading, isError } = storeToRefs(store);
 
 getDataRates();
 
-function searchCurrency(text) {
+function searchCurrency(text: string) {
   const items = getExchangeRateData.value.items || [];
   return items.filter(
     (c) =>

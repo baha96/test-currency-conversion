@@ -3,7 +3,7 @@ import { ref } from "vue";
 
 const emit = defineEmits(["search:get"]);
 const searchText = ref("");
-let debounceTimer;
+let debounceTimer: number | undefined;
 
 function debounceInput() {
   clearTimeout(debounceTimer);
